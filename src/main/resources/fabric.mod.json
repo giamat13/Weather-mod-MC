@@ -1,0 +1,41 @@
+{
+	"schemaVersion": 1,
+	"id": "weather-by-giamatamat",
+	"version": "${version}",
+	"name": "Natural Disasters by giamatamat",
+	"description": "Adds natural disasters to Minecraft: tornadoes & hurricanes, earthquakes, seasons, wildfires, meteors, volcanic eruptions/geysers and sandstorms. Build an Alerter multiblock to get early warnings. Controlled with /Naturaldisasters and /Season.",
+	"authors": [
+		"giamatamat"
+	],
+	"contact": {
+		"homepage": "https://github.com/giamat13/Weather-mod-MC",
+		"sources": "https://github.com/giamat13/Weather-mod-MC"
+	},
+	"license": "CC0-1.0",
+	"icon": "assets/weather-by-giamatamat/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"com.weather_by_giamatamat.WeatherByGiamatamat"
+		],
+		"client": [
+			"com.weather_by_giamatamat.client.WeatherByGiamatamatClient"
+		]
+	},
+	"mixins": [
+		"weather-by-giamatamat.mixins.json",
+		{
+			"config": "weather-by-giamatamat.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.19.3",
+		"minecraft": "~26.2",
+		"java": ">=25",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		"blocky13": "*"
+	}
+}
