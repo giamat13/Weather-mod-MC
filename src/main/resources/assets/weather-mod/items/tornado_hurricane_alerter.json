@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "weather-mod:block/tornado_hurricane_alerter_green"
+  }
+}

@@ -3,6 +3,7 @@
 	"package": "com.weather.mixin",
 	"compatibilityLevel": "JAVA_25",
 	"mixins": [
+		"CreativeModeTabMixin",
 		"ExampleMixin"
 	],
 	"injectors": {

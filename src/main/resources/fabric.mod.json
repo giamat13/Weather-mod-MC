@@ -2,10 +2,10 @@
 	"schemaVersion": 1,
 	"id": "weather-mod",
 	"version": "${version}",
-	"name": "weather-mod",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"name": "Natural Disasters",
+	"description": "Natural disasters for Minecraft: tornadoes and hurricanes that fling entities and rip blocks into the air, plus a buildable Alerter that warns you before they strike. 🌪",
 	"authors": [
-		"Me!"
+		"giamat13"
 	],
 	"contact": {
 		"homepage": "https://fabricmc.net/",
