@@ -1,6 +1,6 @@
 {
 	"required": true,
-	"package": "com.weather_by_giamatamat.mixin",
+	"package": "com.weather.mixin",
 	"compatibilityLevel": "JAVA_25",
 	"mixins": [
 		"ExampleMixin"

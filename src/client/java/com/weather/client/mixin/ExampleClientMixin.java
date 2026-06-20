@@ -1,4 +1,4 @@
-package com.weather_by_giamatamat.client.mixin;
+package com.weather.client.mixin;
 
 import net.minecraft.client.Minecraft;
 import org.spongepowered.asm.mixin.Mixin;
