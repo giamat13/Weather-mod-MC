@@ -1,3 +1,7 @@
 {
-  "respectGitignore": true
+  "respectGitignore": true,
+  "includeGitInstructions": false,
+  "permissions": {
+    "deny": ["Bash(git log*)", "Bash(git hist*)", "Bash(git show*)"]
+  }
 }
