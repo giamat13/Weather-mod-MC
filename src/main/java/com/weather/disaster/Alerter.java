@@ -43,7 +43,10 @@ public final class Alerter {
 			return;
 		}
 		if (state.getValue(TornadoHurricaneAlerterBlock.WARNING) != warning) {
+			// Changing the block state lets an observer detect it; the explicit call
+			// refreshes any comparator reading the alerter's warning level.
 			level.setBlockAndUpdate(pos, state.setValue(TornadoHurricaneAlerterBlock.WARNING, warning));
+			level.updateNeighbourForOutputSignal(pos, ModRegistry.TORNADO_HURRICANE_ALERTER);
 		}
 	}
 
