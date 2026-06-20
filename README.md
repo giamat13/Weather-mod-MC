@@ -34,12 +34,6 @@ A Fabric mod for Minecraft 26.2 that adds tornadoes and hurricanes to your world
 - Minecraft 26.2
 - Fabric Loader 0.19.3+
 - Java 25+
-
-### Steps
-1. Download the latest JAR from the releases
-2. Place `weather-mod-1.0.0.jar` in your `mods/` folder
-3. Launch Minecraft with Fabric
-
 ---
 
 ## Crafting Recipes
@@ -144,12 +138,6 @@ All disaster logic runs server-side. Clients receive:
 - Entity motion packets (for flinging)
 - Block state updates (for alerter color changes)
 - Particle effects and sound
-
----
-
-## License
-
-CC0-1.0 Public Domain
 
 ---
 
