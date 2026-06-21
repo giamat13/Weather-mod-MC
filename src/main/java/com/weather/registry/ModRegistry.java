@@ -8,6 +8,7 @@ import com.weather.block.EarthquakeAlerterBlock;
 import com.weather.block.FireAlerterBlock;
 import com.weather.block.MeteorAlerterBlock;
 import com.weather.block.TornadoHurricaneAlerterBlock;
+import com.weather.block.VolcanoAlerterBlock;
 
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -46,6 +47,10 @@ public final class ModRegistry {
 	/** Warns about incoming meteors. */
 	public static final Block METEOR_ALERTER = registerBlock("meteor_alerter",
 		key -> new MeteorAlerterBlock(alerterProperties(key)));
+
+	/** Warns about volcanic eruptions (geyser fields). */
+	public static final Block VOLCANO_ALERTER = registerBlock("volcano_alerter",
+		key -> new VolcanoAlerterBlock(alerterProperties(key)));
 
 	private static BlockBehaviour.Properties alerterProperties(ResourceKey<Block> key) {
 		return BlockBehaviour.Properties.of()

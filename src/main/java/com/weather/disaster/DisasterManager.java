@@ -87,9 +87,21 @@ public class DisasterManager {
 		}
 	}
 
+	/** Base chance an earthquake also triggers a geyser field, scaled by biome temperature. */
+	private static final double GEYSER_BASE_CHANCE = 0.3;
+
 	/** Manually queue a disaster (used by the /naturaldisasters command). */
 	public void schedule(DisasterType type, ServerLevel level, double x, double y, double z, int delayTicks) {
-		pending.add(new ScheduledDisaster(type, level, x, y, z, tick + Math.max(0, delayTicks)));
+		long startTick = tick + Math.max(0, delayTicks);
+		pending.add(new ScheduledDisaster(type, level, x, y, z, startTick));
+		// Earthquakes can crack the ground open into a geyser field (chance varies by biome).
+		if (type == DisasterType.EARTHQUAKE) {
+			float temperature = level.getBiome(BlockPos.containing(x, y, z)).value().getBaseTemperature();
+			double chance = Math.max(0.0, Math.min(1.0, GEYSER_BASE_CHANCE * (0.3 + temperature)));
+			if (random.nextDouble() < chance) {
+				pending.add(new ScheduledDisaster(DisasterType.VOLCANO, level, x, y, z, startTick));
+			}
+		}
 	}
 
 	public int activeCount() {
@@ -149,6 +161,8 @@ public class DisasterManager {
 			if (s.type() == DisasterType.METEOR) {
 				MeteorType meteorType = random.nextDouble() < METEOR_FIREBALL_SHARE ? MeteorType.FIREBALL : MeteorType.DEBRIS;
 				meteors.add(new ActiveMeteor(s.level(), meteorType, s.x(), s.y(), s.z()));
+			} else if (s.type() == DisasterType.VOLCANO) {
+				GeyserField.create(s.level(), s.x(), s.z());
 			} else {
 				active.add(new ActiveDisaster(s.type(), s.level(), s.x(), s.y(), s.z()));
 			}

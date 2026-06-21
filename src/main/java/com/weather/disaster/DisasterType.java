@@ -13,7 +13,9 @@ public enum DisasterType {
 	// Wildfire is never a moving disaster; it is detected from real fires in forest biomes.
 	WILDFIRE("Wildfire", "שריפה", 0.0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0, false, 0.0, 0.0, 0, false),
 	// Meteors are handled by their own descent/impact logic (see ActiveMeteor), not the vortex code.
-	METEOR("Meteor", "מטאור", 0.0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0, false, 0.0, 0.0, 0, true);
+	METEOR("Meteor", "מטאור", 0.0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0, false, 0.0, 0.0, 0, true),
+	// Volcanic eruption: turns the area into a geyser field (see GeyserField).
+	VOLCANO("Volcanic Eruption", "התפרצות געשית", 0.0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0, false, 0.0, 0.0, 0, true);
 
 	/** Horizontal radius of influence, in blocks. */
 	public final double radius;

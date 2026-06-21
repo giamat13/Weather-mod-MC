@@ -1,0 +1,18 @@
+{
+  "variants": {
+    "facing=north,warning=0": { "model": "weather-mod:block/volcano_alerter_green" },
+    "facing=east,warning=0":  { "model": "weather-mod:block/volcano_alerter_green", "y": 90 },
+    "facing=south,warning=0": { "model": "weather-mod:block/volcano_alerter_green", "y": 180 },
+    "facing=west,warning=0":  { "model": "weather-mod:block/volcano_alerter_green", "y": 270 },
+
+    "facing=north,warning=1": { "model": "weather-mod:block/volcano_alerter_yellow" },
+    "facing=east,warning=1":  { "model": "weather-mod:block/volcano_alerter_yellow", "y": 90 },
+    "facing=south,warning=1": { "model": "weather-mod:block/volcano_alerter_yellow", "y": 180 },
+    "facing=west,warning=1":  { "model": "weather-mod:block/volcano_alerter_yellow", "y": 270 },
+
+    "facing=north,warning=2": { "model": "weather-mod:block/volcano_alerter_red" },
+    "facing=east,warning=2":  { "model": "weather-mod:block/volcano_alerter_red", "y": 90 },
+    "facing=south,warning=2": { "model": "weather-mod:block/volcano_alerter_red", "y": 180 },
+    "facing=west,warning=2":  { "model": "weather-mod:block/volcano_alerter_red", "y": 270 }
+  }
+}

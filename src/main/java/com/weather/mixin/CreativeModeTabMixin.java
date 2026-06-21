@@ -33,7 +33,8 @@ public class CreativeModeTabMixin {
 			new ItemStack(ModRegistry.TORNADO_HURRICANE_ALERTER),
 			new ItemStack(ModRegistry.EARTHQUAKE_ALERTER),
 			new ItemStack(ModRegistry.FIRE_ALERTER),
-			new ItemStack(ModRegistry.METEOR_ALERTER)
+			new ItemStack(ModRegistry.METEOR_ALERTER),
+			new ItemStack(ModRegistry.VOLCANO_ALERTER)
 		}) {
 			self.getDisplayItems().add(item);
 			self.getSearchTabDisplayItems().add(item.copy());
