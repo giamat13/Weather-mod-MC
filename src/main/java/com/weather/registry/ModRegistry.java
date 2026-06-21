@@ -5,6 +5,7 @@ import java.util.function.Function;
 import com.weather.WeatherMod;
 import com.weather.block.AbstractAlerterBlock;
 import com.weather.block.EarthquakeAlerterBlock;
+import com.weather.block.FireAlerterBlock;
 import com.weather.block.TornadoHurricaneAlerterBlock;
 
 import net.minecraft.core.Registry;
@@ -36,6 +37,10 @@ public final class ModRegistry {
 	/** Warns about approaching earthquakes. */
 	public static final Block EARTHQUAKE_ALERTER = registerBlock("earthquake_alerter",
 		key -> new EarthquakeAlerterBlock(alerterProperties(key)));
+
+	/** Warns about wildfires in nearby forest biomes. */
+	public static final Block FIRE_ALERTER = registerBlock("fire_alerter",
+		key -> new FireAlerterBlock(alerterProperties(key)));
 
 	private static BlockBehaviour.Properties alerterProperties(ResourceKey<Block> key) {
 		return BlockBehaviour.Properties.of()

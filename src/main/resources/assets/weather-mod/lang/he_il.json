@@ -3,6 +3,8 @@
   "item.weather-mod.tornado_hurricane_alerter": "מתריע טורנדו והוריקן",
   "block.weather-mod.earthquake_alerter": "מתריע רעידות אדמה",
   "item.weather-mod.earthquake_alerter": "מתריע רעידות אדמה",
+  "block.weather-mod.fire_alerter": "מתריע שריפות",
+  "item.weather-mod.fire_alerter": "מתריע שריפות",
   "item.weather-mod.useless_alerter": "מתריע שלא עושה כלום",
   "item.weather-mod.disaster_shield": "מגן מאסונות טבע"
 }

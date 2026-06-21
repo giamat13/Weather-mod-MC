@@ -3,6 +3,8 @@
   "item.weather-mod.tornado_hurricane_alerter": "Tornado & Hurricane Alerter",
   "block.weather-mod.earthquake_alerter": "Earthquake Alerter",
   "item.weather-mod.earthquake_alerter": "Earthquake Alerter",
+  "block.weather-mod.fire_alerter": "Wildfire Alerter",
+  "item.weather-mod.fire_alerter": "Wildfire Alerter",
   "item.weather-mod.useless_alerter": "Useless Alerter",
   "item.weather-mod.disaster_shield": "Disaster Shield"
 }

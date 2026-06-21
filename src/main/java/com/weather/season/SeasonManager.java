@@ -2,10 +2,13 @@ package com.weather.season;
 
 import java.util.Random;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * Tracks the current season from the overworld day clock — one season per
@@ -45,6 +48,11 @@ public class SeasonManager {
 			lastDay = day;
 			applyWeather(server, overworld, season);
 		}
+
+		// Summer heat can spontaneously set flammable blocks alight (very rarely).
+		if (season == Season.SUMMER) {
+			summerIgnition(server);
+		}
 	}
 
 	public Season current(MinecraftServer server) {
@@ -82,6 +90,29 @@ public class SeasonManager {
 			}
 		} else if (random.nextDouble() < season.clearChance) {
 			server.setWeatherParameters(3000 + random.nextInt(6000), 0, false, false);
+		}
+	}
+
+	// 0.000009% per attempt that a random flammable block near a player catches fire in summer.
+	private static final double SUMMER_FIRE_CHANCE = 0.00000009;
+	private static final int SUMMER_FIRE_SAMPLES = 16;
+	private static final int SUMMER_FIRE_RADIUS = 40;
+
+	private void summerIgnition(MinecraftServer server) {
+		for (ServerLevel level : server.getAllLevels()) {
+			for (ServerPlayer player : level.players()) {
+				for (int i = 0; i < SUMMER_FIRE_SAMPLES; i++) {
+					int bx = player.blockPosition().getX() + random.nextInt(SUMMER_FIRE_RADIUS * 2 + 1) - SUMMER_FIRE_RADIUS;
+					int bz = player.blockPosition().getZ() + random.nextInt(SUMMER_FIRE_RADIUS * 2 + 1) - SUMMER_FIRE_RADIUS;
+					int by = player.blockPosition().getY() + random.nextInt(17) - 8;
+					BlockPos pos = new BlockPos(bx, by, bz);
+					BlockState state = level.getBlockState(pos);
+					if (state.ignitedByLava() && level.getBlockState(pos.above()).isAir()
+							&& random.nextDouble() < SUMMER_FIRE_CHANCE) {
+						level.setBlockAndUpdate(pos.above(), Blocks.FIRE.defaultBlockState());
+					}
+				}
+			}
 		}
 	}
 

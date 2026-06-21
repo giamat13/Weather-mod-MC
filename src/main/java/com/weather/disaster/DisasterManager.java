@@ -17,6 +17,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.BiomeTags;
+import net.minecraft.world.level.block.Blocks;
 
 /**
  * Server-side brain of the mod. Ticked once per server tick, it:
@@ -40,6 +42,10 @@ public class DisasterManager {
 	/** How often a red-alert alerter beeps, and how close a player must be to trigger it. */
 	private static final int BEEP_INTERVAL = 5; // ~4 beeps per second
 	private static final double BEEP_RANGE = 24.0;
+
+	/** How far around a player we look for forest fires (wildfires). */
+	private static final int FIRE_SCAN_H = 24;
+	private static final int FIRE_SCAN_V = 6;
 
 	private long tick;
 	private final Random random = new Random();
@@ -149,6 +155,7 @@ public class DisasterManager {
 	private void updateAlerters(MinecraftServer server) {
 		for (ServerLevel level : server.getAllLevels()) {
 			List<Threat> threats = threatPositionsIn(level);
+			detectWildfires(level, threats);
 			if (threats.isEmpty()) {
 				resetLevel(level);
 				continue;
@@ -181,6 +188,33 @@ public class DisasterManager {
 			}
 		}
 		return threats;
+	}
+
+	/** Find fires burning in forest biomes near players and report them as wildfire threats. */
+	private void detectWildfires(ServerLevel level, List<Threat> threats) {
+		BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
+		for (ServerPlayer player : level.players()) {
+			BlockPos around = player.blockPosition();
+			BlockPos fire = findForestFire(level, around, cursor);
+			if (fire != null) {
+				threats.add(new Threat(fire.getX(), fire.getZ(), DisasterType.WILDFIRE));
+			}
+		}
+	}
+
+	private BlockPos findForestFire(ServerLevel level, BlockPos around, BlockPos.MutableBlockPos cursor) {
+		for (int dy = -FIRE_SCAN_V; dy <= FIRE_SCAN_V; dy++) {
+			for (int dx = -FIRE_SCAN_H; dx <= FIRE_SCAN_H; dx++) {
+				for (int dz = -FIRE_SCAN_H; dz <= FIRE_SCAN_H; dz++) {
+					cursor.set(around.getX() + dx, around.getY() + dy, around.getZ() + dz);
+					var block = level.getBlockState(cursor).getBlock();
+					if ((block == Blocks.FIRE || block == Blocks.SOUL_FIRE) && level.getBiome(cursor).is(BiomeTags.IS_FOREST)) {
+						return cursor.immutable();
+					}
+				}
+			}
+		}
+		return null;
 	}
 
 	private void scanAround(ServerLevel level, BlockPos around, List<Threat> threats, Set<BlockPos> found, Set<BlockPos> reds) {

@@ -30,6 +30,9 @@ public final class NaturalDisastersCommand {
 			.requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS));
 
 		for (DisasterType type : DisasterType.values()) {
+			if (!type.spawnable) {
+				continue; // e.g. wildfires are detected, not spawned
+			}
 			root.then(Commands.literal(type.name().toLowerCase())
 				.executes(ctx -> trigger(ctx, type, 0))
 				.then(Commands.argument("delaySeconds", IntegerArgumentType.integer(0, 600))

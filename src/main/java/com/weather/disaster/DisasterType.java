@@ -6,10 +6,12 @@ package com.weather.disaster;
  * <p>A hurricane is intentionally bigger, longer and stronger than a tornado.
  */
 public enum DisasterType {
-	// name        hebrew      radius height life  drift pull  up    swirl blocks/tick hurts grab  toss breaks
-	TORNADO("Tornado", "טורנדו", 8.0, 28, 600, 0.45, 0.35, 0.95, 0.80, 2, false, 1.0, 0.0, 0),
-	HURRICANE("Hurricane", "הוריקן", 18.0, 42, 1200, 0.28, 0.55, 1.25, 1.10, 5, true, 1.7, 0.0, 0),
-	EARTHQUAKE("Earthquake", "רעידת אדמה", 40.0, 0, 400, 0.0, 0.0, 0.0, 0.0, 0, false, 0.0, 0.9, 12);
+	// name        hebrew      radius height life  drift pull  up    swirl blocks/tick hurts grab  toss breaks spawnable
+	TORNADO("Tornado", "טורנדו", 8.0, 28, 600, 0.45, 0.35, 0.95, 0.80, 2, false, 1.0, 0.0, 0, true),
+	HURRICANE("Hurricane", "הוריקן", 18.0, 42, 1200, 0.28, 0.55, 1.25, 1.10, 5, true, 1.7, 0.0, 0, true),
+	EARTHQUAKE("Earthquake", "רעידת אדמה", 40.0, 0, 400, 0.0, 0.0, 0.0, 0.0, 0, false, 0.0, 0.9, 12, true),
+	// Wildfire is never a moving disaster; it is detected from real fires in forest biomes.
+	WILDFIRE("Wildfire", "שריפה", 0.0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0, false, 0.0, 0.0, 0, false);
 
 	/** Horizontal radius of influence, in blocks. */
 	public final double radius;
@@ -39,6 +41,8 @@ public enum DisasterType {
 	public final double quakeTossPower;
 	/** Earthquake only: how many blocks crumble across the affected chunks each tick. */
 	public final int quakeBreaksPerTick;
+	/** Whether this disaster can be spawned as a moving event (command / storms). */
+	public final boolean spawnable;
 
 	public final String englishName;
 	public final String hebrewName;
@@ -46,7 +50,7 @@ public enum DisasterType {
 	DisasterType(String englishName, String hebrewName, double radius, int height, int lifetimeTicks,
 			double driftPerTick, double pullStrength, double upStrength, double swirlStrength,
 			int blocksPerTick, boolean blocksHurtEntities, double blockGrabStrength,
-			double quakeTossPower, int quakeBreaksPerTick) {
+			double quakeTossPower, int quakeBreaksPerTick, boolean spawnable) {
 		this.englishName = englishName;
 		this.hebrewName = hebrewName;
 		this.radius = radius;
@@ -61,5 +65,6 @@ public enum DisasterType {
 		this.blockGrabStrength = blockGrabStrength;
 		this.quakeTossPower = quakeTossPower;
 		this.quakeBreaksPerTick = quakeBreaksPerTick;
+		this.spawnable = spawnable;
 	}
 }
