@@ -1,8 +1,10 @@
 package com.weather;
 
 import com.weather.command.NaturalDisastersCommand;
+import com.weather.command.SeasonCommand;
 import com.weather.disaster.DisasterManager;
 import com.weather.registry.ModRegistry;
+import com.weather.season.SeasonManager;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -20,6 +22,8 @@ public class WeatherMod implements ModInitializer {
 
 	// The single server-side manager that drives all natural disasters and alerters.
 	public static final DisasterManager DISASTERS = new DisasterManager();
+	// Tracks the seasons and biases the weather.
+	public static final SeasonManager SEASONS = new SeasonManager();
 
 	@Override
 	public void onInitialize() {
@@ -27,13 +31,13 @@ public class WeatherMod implements ModInitializer {
 
 		// Drive the whole system from the end of every server tick.
 		ServerTickEvents.END_SERVER_TICK.register(DISASTERS::onEndServerTick);
+		ServerTickEvents.END_SERVER_TICK.register(SEASONS::onEndServerTick);
 
-		// Make sure a fresh world doesn't inherit leftover state from a previous one.
-		ServerTickEvents.START_SERVER_TICK.register(server -> {});
-
-		// /naturaldisasters command for manually triggering a disaster.
-		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
-			NaturalDisastersCommand.register(dispatcher));
+		// Commands: trigger disasters, and view/change the season.
+		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+			NaturalDisastersCommand.register(dispatcher);
+			SeasonCommand.register(dispatcher);
+		});
 
 		LOGGER.info("Natural Disasters loaded 🌪");
 	}
