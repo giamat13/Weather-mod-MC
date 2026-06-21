@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "top": "weather-mod:block/alerter_side",
+    "front": "weather-mod:block/earthquake_alerter_front_red",
+    "side": "weather-mod:block/alerter_side"
+  }
+}

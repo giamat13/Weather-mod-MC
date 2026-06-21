@@ -64,7 +64,14 @@ public class ActiveDisaster {
 	public void tick() {
 		ticksLived++;
 		RandomSource rng = level.getRandom();
+		if (type == DisasterType.EARTHQUAKE) {
+			tickEarthquake(rng);
+		} else {
+			tickVortex(rng);
+		}
+	}
 
+	private void tickVortex(RandomSource rng) {
 		// Wander: nudge the heading a little each tick so the path curves naturally.
 		heading += (rng.nextDouble() - 0.5) * 0.3;
 		x += Math.cos(heading) * type.driftPerTick;
@@ -80,6 +87,63 @@ public class ActiveDisaster {
 		if (ticksLived % 30 == 0) {
 			level.playSound(null, x, y, z, SoundEvents.LIGHTNING_BOLT_THUNDER, SoundSource.WEATHER,
 				type == DisasterType.HURRICANE ? 4.0f : 2.0f, 0.6f);
+		}
+	}
+
+	/**
+	 * An earthquake stays put at its epicentre, repeatedly bouncing nearby entities into
+	 * the air and crumbling a share of the blocks in the surrounding chunks.
+	 */
+	private void tickEarthquake(RandomSource rng) {
+		// Bounce entities every half-second, with height/distance scaled by the magnitude.
+		if (ticksLived % 10 == 0) {
+			bounceEntities(rng);
+		}
+		crumbleBlocks(rng);
+
+		// Ground-shake rumble and dust.
+		if (ticksLived % 8 == 0) {
+			level.playSound(null, x, y, z, SoundEvents.GENERIC_EXPLODE.value(), SoundSource.BLOCKS, 3.0f, 0.4f);
+		}
+	}
+
+	private void bounceEntities(RandomSource rng) {
+		double r = type.radius;
+		AABB box = new AABB(x - r, y - 8, z - r, x + r, y + 8, z + r);
+		for (Entity e : level.getEntities((Entity) null, box, Entity::isAlive)) {
+			double dx = e.getX() - x;
+			double dz = e.getZ() - z;
+			if (dx * dx + dz * dz > r * r) {
+				continue;
+			}
+			double power = type.quakeTossPower;
+			double vx = (rng.nextDouble() - 0.5) * power;
+			double vz = (rng.nextDouble() - 0.5) * power;
+			double vy = power * (0.6 + rng.nextDouble() * 0.6);
+			e.setDeltaMovement(e.getDeltaMovement().add(vx, vy, vz));
+			e.fallDistance = 0.0f;
+			if (e instanceof ServerPlayer player) {
+				player.connection.send(new ClientboundSetEntityMotionPacket(player));
+			} else {
+				e.hurtMarked = true;
+			}
+		}
+	}
+
+	private void crumbleBlocks(RandomSource rng) {
+		double r = type.radius;
+		for (int i = 0; i < type.quakeBreaksPerTick; i++) {
+			int bx = Mth.floor(x + (rng.nextDouble() * 2 - 1) * r);
+			int bz = Mth.floor(z + (rng.nextDouble() * 2 - 1) * r);
+			int surface = level.getHeight(Heightmap.Types.WORLD_SURFACE, bx, bz);
+			// Break a block at or just below the surface so the quake opens cracks and craters.
+			int by = surface - 1 - rng.nextInt(3);
+			BlockPos pos = new BlockPos(bx, by, bz);
+			BlockState state = level.getBlockState(pos);
+			if (state.isAir() || state.getDestroySpeed(level, pos) < 0.0f || !state.getFluidState().isEmpty()) {
+				continue;
+			}
+			level.destroyBlock(pos, false, null, 512);
 		}
 	}
 

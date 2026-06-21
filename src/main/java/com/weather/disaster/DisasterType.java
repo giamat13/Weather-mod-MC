@@ -6,9 +6,10 @@ package com.weather.disaster;
  * <p>A hurricane is intentionally bigger, longer and stronger than a tornado.
  */
 public enum DisasterType {
-	// name        hebrew      radius height life  drift pull  up    swirl blocks/tick hurts grab
-	TORNADO("Tornado", "טורנדו", 8.0, 28, 600, 0.45, 0.35, 0.95, 0.80, 2, false, 1.0),
-	HURRICANE("Hurricane", "הוריקן", 18.0, 42, 1200, 0.28, 0.55, 1.25, 1.10, 5, true, 1.7);
+	// name        hebrew      radius height life  drift pull  up    swirl blocks/tick hurts grab  toss breaks
+	TORNADO("Tornado", "טורנדו", 8.0, 28, 600, 0.45, 0.35, 0.95, 0.80, 2, false, 1.0, 0.0, 0),
+	HURRICANE("Hurricane", "הוריקן", 18.0, 42, 1200, 0.28, 0.55, 1.25, 1.10, 5, true, 1.7, 0.0, 0),
+	EARTHQUAKE("Earthquake", "רעידת אדמה", 40.0, 0, 400, 0.0, 0.0, 0.0, 0.0, 0, false, 0.0, 0.9, 12);
 
 	/** Horizontal radius of influence, in blocks. */
 	public final double radius;
@@ -34,13 +35,18 @@ public enum DisasterType {
 	 * are far less likely to be taken, and a hurricane (higher value) grabs more than a tornado.
 	 */
 	public final double blockGrabStrength;
+	/** Earthquake only: how hard entities/players are bounced up and outward. */
+	public final double quakeTossPower;
+	/** Earthquake only: how many blocks crumble across the affected chunks each tick. */
+	public final int quakeBreaksPerTick;
 
 	public final String englishName;
 	public final String hebrewName;
 
 	DisasterType(String englishName, String hebrewName, double radius, int height, int lifetimeTicks,
 			double driftPerTick, double pullStrength, double upStrength, double swirlStrength,
-			int blocksPerTick, boolean blocksHurtEntities, double blockGrabStrength) {
+			int blocksPerTick, boolean blocksHurtEntities, double blockGrabStrength,
+			double quakeTossPower, int quakeBreaksPerTick) {
 		this.englishName = englishName;
 		this.hebrewName = hebrewName;
 		this.radius = radius;
@@ -53,5 +59,7 @@ public enum DisasterType {
 		this.blocksPerTick = blocksPerTick;
 		this.blocksHurtEntities = blocksHurtEntities;
 		this.blockGrabStrength = blockGrabStrength;
+		this.quakeTossPower = quakeTossPower;
+		this.quakeBreaksPerTick = quakeBreaksPerTick;
 	}
 }

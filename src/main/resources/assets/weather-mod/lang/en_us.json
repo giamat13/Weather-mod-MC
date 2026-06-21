@@ -1,5 +1,7 @@
 {
   "block.weather-mod.tornado_hurricane_alerter": "Tornado & Hurricane Alerter",
   "item.weather-mod.tornado_hurricane_alerter": "Tornado & Hurricane Alerter",
+  "block.weather-mod.earthquake_alerter": "Earthquake Alerter",
+  "item.weather-mod.earthquake_alerter": "Earthquake Alerter",
   "item.weather-mod.useless_alerter": "Useless Alerter"
 }

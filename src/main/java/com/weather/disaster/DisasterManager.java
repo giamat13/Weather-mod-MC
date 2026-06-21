@@ -10,8 +10,7 @@ import java.util.Random;
 import java.util.Set;
 
 import com.weather.WeatherMod;
-import com.weather.block.TornadoHurricaneAlerterBlock;
-import com.weather.registry.ModRegistry;
+import com.weather.block.AbstractAlerterBlock;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -149,7 +148,7 @@ public class DisasterManager {
 
 	private void updateAlerters(MinecraftServer server) {
 		for (ServerLevel level : server.getAllLevels()) {
-			List<double[]> threats = threatPositionsIn(level);
+			List<Threat> threats = threatPositionsIn(level);
 			if (threats.isEmpty()) {
 				resetLevel(level);
 				continue;
@@ -165,38 +164,43 @@ public class DisasterManager {
 		}
 	}
 
-	private List<double[]> threatPositionsIn(ServerLevel level) {
-		List<double[]> threats = new ArrayList<>();
+	/** A disaster's position and kind, used to decide which alerters should react to it. */
+	private record Threat(double x, double z, DisasterType type) {
+	}
+
+	private List<Threat> threatPositionsIn(ServerLevel level) {
+		List<Threat> threats = new ArrayList<>();
 		for (ScheduledDisaster s : pending) {
 			if (s.level() == level) {
-				threats.add(new double[] { s.x(), s.z() });
+				threats.add(new Threat(s.x(), s.z(), s.type()));
 			}
 		}
 		for (ActiveDisaster d : active) {
 			if (d.level() == level) {
-				threats.add(new double[] { d.x(), d.z() });
+				threats.add(new Threat(d.x(), d.z(), d.type()));
 			}
 		}
 		return threats;
 	}
 
-	private void scanAround(ServerLevel level, BlockPos around, List<double[]> threats, Set<BlockPos> found, Set<BlockPos> reds) {
+	private void scanAround(ServerLevel level, BlockPos around, List<Threat> threats, Set<BlockPos> found, Set<BlockPos> reds) {
 		BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
 		for (int dx = -SCAN_RADIUS_H; dx <= SCAN_RADIUS_H; dx++) {
 			for (int dy = -SCAN_RADIUS_V; dy <= SCAN_RADIUS_V; dy++) {
 				for (int dz = -SCAN_RADIUS_H; dz <= SCAN_RADIUS_H; dz++) {
 					cursor.set(around.getX() + dx, around.getY() + dy, around.getZ() + dz);
-					if (level.getBlockState(cursor).getBlock() != ModRegistry.TORNADO_HURRICANE_ALERTER) {
+					if (!(level.getBlockState(cursor).getBlock() instanceof AbstractAlerterBlock alerter)) {
 						continue;
 					}
 					BlockPos pos = cursor.immutable();
 					if (found.contains(pos)) {
 						continue;
 					}
-					int warning = Alerter.warningFor(nearestDistance(pos, threats));
+					// Each alerter only reacts to the disaster types it warns about.
+					int warning = Alerter.warningFor(nearestDistance(pos, threats, alerter));
 					Alerter.apply(level, pos, warning);
 					found.add(pos);
-					if (warning == TornadoHurricaneAlerterBlock.WARNING_RED) {
+					if (warning == AbstractAlerterBlock.WARNING_RED) {
 						reds.add(pos);
 					}
 				}
@@ -204,11 +208,14 @@ public class DisasterManager {
 		}
 	}
 
-	private double nearestDistance(BlockPos centre, List<double[]> threats) {
+	private double nearestDistance(BlockPos centre, List<Threat> threats, AbstractAlerterBlock alerter) {
 		double best = Double.MAX_VALUE;
-		for (double[] t : threats) {
-			double dx = centre.getX() - t[0];
-			double dz = centre.getZ() - t[1];
+		for (Threat t : threats) {
+			if (!alerter.warnsAbout(t.type())) {
+				continue;
+			}
+			double dx = centre.getX() - t.x();
+			double dz = centre.getZ() - t.z();
 			best = Math.min(best, Math.sqrt(dx * dx + dz * dz));
 		}
 		return best;
@@ -224,7 +231,7 @@ public class DisasterManager {
 			return;
 		}
 		for (BlockPos pos : known) {
-			Alerter.apply(level, pos, TornadoHurricaneAlerterBlock.WARNING_NONE);
+			Alerter.apply(level, pos, AbstractAlerterBlock.WARNING_NONE);
 		}
 		known.clear();
 	}

@@ -27,9 +27,13 @@ public class CreativeModeTabMixin {
 		if (id == null || !id.equals(REDSTONE_TAB)) {
 			return;
 		}
-		self.getDisplayItems().add(new ItemStack(ModRegistry.USELESS_ALERTER));
-		self.getDisplayItems().add(new ItemStack(ModRegistry.TORNADO_HURRICANE_ALERTER));
-		self.getSearchTabDisplayItems().add(new ItemStack(ModRegistry.USELESS_ALERTER));
-		self.getSearchTabDisplayItems().add(new ItemStack(ModRegistry.TORNADO_HURRICANE_ALERTER));
+		for (var item : new ItemStack[] {
+			new ItemStack(ModRegistry.USELESS_ALERTER),
+			new ItemStack(ModRegistry.TORNADO_HURRICANE_ALERTER),
+			new ItemStack(ModRegistry.EARTHQUAKE_ALERTER)
+		}) {
+			self.getDisplayItems().add(item);
+			self.getSearchTabDisplayItems().add(item.copy());
+		}
 	}
 }

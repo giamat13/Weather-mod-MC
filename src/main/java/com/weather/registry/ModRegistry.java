@@ -3,6 +3,8 @@ package com.weather.registry;
 import java.util.function.Function;
 
 import com.weather.WeatherMod;
+import com.weather.block.AbstractAlerterBlock;
+import com.weather.block.EarthquakeAlerterBlock;
 import com.weather.block.TornadoHurricaneAlerterBlock;
 
 import net.minecraft.core.Registry;
@@ -25,11 +27,19 @@ public final class ModRegistry {
 
 	/** Warns about approaching tornadoes and hurricanes; placed on walls, glows while warning. */
 	public static final Block TORNADO_HURRICANE_ALERTER = registerBlock("tornado_hurricane_alerter",
-		key -> new TornadoHurricaneAlerterBlock(BlockBehaviour.Properties.of()
+		key -> new TornadoHurricaneAlerterBlock(alerterProperties(key)));
+
+	/** Warns about approaching earthquakes. */
+	public static final Block EARTHQUAKE_ALERTER = registerBlock("earthquake_alerter",
+		key -> new EarthquakeAlerterBlock(alerterProperties(key)));
+
+	private static BlockBehaviour.Properties alerterProperties(ResourceKey<Block> key) {
+		return BlockBehaviour.Properties.of()
 			.setId(key)
 			.strength(1.5f, 6.0f)
 			.sound(SoundType.METAL)
-			.lightLevel(state -> state.getValue(TornadoHurricaneAlerterBlock.WARNING) > 0 ? 13 : 4)));
+			.lightLevel(state -> state.getValue(AbstractAlerterBlock.WARNING) > 0 ? 13 : 4);
+	}
 
 	private ModRegistry() {
 	}
