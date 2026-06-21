@@ -5,6 +5,8 @@
   "item.weather-mod.earthquake_alerter": "מתריע רעידות אדמה",
   "block.weather-mod.fire_alerter": "מתריע שריפות",
   "item.weather-mod.fire_alerter": "מתריע שריפות",
+  "block.weather-mod.meteor_alerter": "מתריע מטאורים",
+  "item.weather-mod.meteor_alerter": "מתריע מטאורים",
   "item.weather-mod.useless_alerter": "מתריע שלא עושה כלום",
   "item.weather-mod.disaster_shield": "מגן מאסונות טבע"
 }

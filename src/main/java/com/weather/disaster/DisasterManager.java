@@ -47,11 +47,21 @@ public class DisasterManager {
 	private static final int FIRE_SCAN_H = 24;
 	private static final int FIRE_SCAN_V = 6;
 
+	/** Meteors: a 10% roll every 45–90 minutes, landing within render distance of a player. */
+	private static final double METEOR_CHANCE = 0.10;
+	private static final int METEOR_MIN_INTERVAL = 45 * 60 * 20;
+	private static final int METEOR_MAX_INTERVAL = 90 * 60 * 20;
+	private static final double METEOR_FIREBALL_SHARE = 0.3;
+	private static final int METEOR_MIN_DIST = 48;
+	private static final int METEOR_MAX_DIST = 128;
+
 	private long tick;
+	private long nextMeteorCheck = -1;
 	private final Random random = new Random();
 
 	private final List<ScheduledDisaster> pending = new ArrayList<>();
 	private final List<ActiveDisaster> active = new ArrayList<>();
+	private final List<ActiveMeteor> meteors = new ArrayList<>();
 
 	/** Tracks which levels are currently thundering, to detect the start of a storm. */
 	private final Map<ServerLevel, Boolean> thundering = new HashMap<>();
@@ -64,8 +74,10 @@ public class DisasterManager {
 		tick++;
 
 		detectStormStarts(server);
+		maybeScheduleMeteor(server);
 		promoteScheduled();
 		tickActive();
+		tickMeteors();
 
 		if (tick % ALERTER_SCAN_INTERVAL == 0) {
 			updateAlerters(server);
@@ -130,11 +142,17 @@ public class DisasterManager {
 		Iterator<ScheduledDisaster> it = pending.iterator();
 		while (it.hasNext()) {
 			ScheduledDisaster s = it.next();
-			if (tick >= s.startTick()) {
-				active.add(new ActiveDisaster(s.type(), s.level(), s.x(), s.y(), s.z()));
-				it.remove();
-				broadcast(s.level(), "§c⚠ " + hebrewAnnouncement(s.type(), true));
+			if (tick < s.startTick()) {
+				continue;
 			}
+			it.remove();
+			if (s.type() == DisasterType.METEOR) {
+				MeteorType meteorType = random.nextDouble() < METEOR_FIREBALL_SHARE ? MeteorType.FIREBALL : MeteorType.DEBRIS;
+				meteors.add(new ActiveMeteor(s.level(), meteorType, s.x(), s.y(), s.z()));
+			} else {
+				active.add(new ActiveDisaster(s.type(), s.level(), s.x(), s.y(), s.z()));
+			}
+			broadcast(s.level(), "§c⚠ " + hebrewAnnouncement(s.type(), true));
 		}
 	}
 
@@ -148,6 +166,52 @@ public class DisasterManager {
 				broadcast(d.level(), "§a" + hebrewAnnouncement(d.type(), false));
 			}
 		}
+	}
+
+	private void tickMeteors() {
+		Iterator<ActiveMeteor> it = meteors.iterator();
+		while (it.hasNext()) {
+			ActiveMeteor meteor = it.next();
+			meteor.tick();
+			if (meteor.finished()) {
+				it.remove();
+			}
+		}
+	}
+
+	// --- meteors --------------------------------------------------------------
+
+	private void maybeScheduleMeteor(MinecraftServer server) {
+		if (nextMeteorCheck < 0) {
+			nextMeteorCheck = tick + randomMeteorInterval();
+			return;
+		}
+		if (tick < nextMeteorCheck) {
+			return;
+		}
+		nextMeteorCheck = tick + randomMeteorInterval();
+		if (random.nextDouble() >= METEOR_CHANCE) {
+			return;
+		}
+		ServerLevel level = server.overworld();
+		List<ServerPlayer> players = level.players();
+		if (players.isEmpty()) {
+			return;
+		}
+		ServerPlayer target = players.get(random.nextInt(players.size()));
+		double angle = random.nextDouble() * Math.PI * 2.0;
+		double dist = METEOR_MIN_DIST + random.nextDouble() * (METEOR_MAX_DIST - METEOR_MIN_DIST);
+		double x = target.getX() + Math.cos(angle) * dist;
+		double z = target.getZ() + Math.sin(angle) * dist;
+		int y = level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.WORLD_SURFACE,
+			net.minecraft.util.Mth.floor(x), net.minecraft.util.Mth.floor(z));
+		schedule(DisasterType.METEOR, level, x, y, z, WARNING_LEAD_TICKS);
+		WeatherMod.LOGGER.info("A meteor will strike {} in 2 minutes at [{}, {}]",
+			level.dimension().identifier(), (int) x, (int) z);
+	}
+
+	private int randomMeteorInterval() {
+		return METEOR_MIN_INTERVAL + random.nextInt(METEOR_MAX_INTERVAL - METEOR_MIN_INTERVAL);
 	}
 
 	// --- alerter warning lights ----------------------------------------------
@@ -185,6 +249,11 @@ public class DisasterManager {
 		for (ActiveDisaster d : active) {
 			if (d.level() == level) {
 				threats.add(new Threat(d.x(), d.z(), d.type()));
+			}
+		}
+		for (ActiveMeteor m : meteors) {
+			if (m.level() == level) {
+				threats.add(new Threat(m.x(), m.z(), DisasterType.METEOR));
 			}
 		}
 		return threats;

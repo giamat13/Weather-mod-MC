@@ -11,7 +11,9 @@ public enum DisasterType {
 	HURRICANE("Hurricane", "הוריקן", 18.0, 42, 1200, 0.28, 0.55, 1.25, 1.10, 5, true, 1.7, 0.0, 0, true),
 	EARTHQUAKE("Earthquake", "רעידת אדמה", 40.0, 0, 400, 0.0, 0.0, 0.0, 0.0, 0, false, 0.0, 0.9, 12, true),
 	// Wildfire is never a moving disaster; it is detected from real fires in forest biomes.
-	WILDFIRE("Wildfire", "שריפה", 0.0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0, false, 0.0, 0.0, 0, false);
+	WILDFIRE("Wildfire", "שריפה", 0.0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0, false, 0.0, 0.0, 0, false),
+	// Meteors are handled by their own descent/impact logic (see ActiveMeteor), not the vortex code.
+	METEOR("Meteor", "מטאור", 0.0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0, false, 0.0, 0.0, 0, true);
 
 	/** Horizontal radius of influence, in blocks. */
 	public final double radius;

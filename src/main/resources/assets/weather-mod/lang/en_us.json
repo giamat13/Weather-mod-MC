@@ -5,6 +5,8 @@
   "item.weather-mod.earthquake_alerter": "Earthquake Alerter",
   "block.weather-mod.fire_alerter": "Wildfire Alerter",
   "item.weather-mod.fire_alerter": "Wildfire Alerter",
+  "block.weather-mod.meteor_alerter": "Meteor Alerter",
+  "item.weather-mod.meteor_alerter": "Meteor Alerter",
   "item.weather-mod.useless_alerter": "Useless Alerter",
   "item.weather-mod.disaster_shield": "Disaster Shield"
 }

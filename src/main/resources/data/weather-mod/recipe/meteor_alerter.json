@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "redstone",
+  "ingredients": [
+    "weather-mod:useless_alerter",
+    "minecraft:stone"
+  ],
+  "result": {
+    "id": "weather-mod:meteor_alerter"
+  }
+}

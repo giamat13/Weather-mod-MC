@@ -6,6 +6,7 @@ import com.weather.WeatherMod;
 import com.weather.block.AbstractAlerterBlock;
 import com.weather.block.EarthquakeAlerterBlock;
 import com.weather.block.FireAlerterBlock;
+import com.weather.block.MeteorAlerterBlock;
 import com.weather.block.TornadoHurricaneAlerterBlock;
 
 import net.minecraft.core.Registry;
@@ -41,6 +42,10 @@ public final class ModRegistry {
 	/** Warns about wildfires in nearby forest biomes. */
 	public static final Block FIRE_ALERTER = registerBlock("fire_alerter",
 		key -> new FireAlerterBlock(alerterProperties(key)));
+
+	/** Warns about incoming meteors. */
+	public static final Block METEOR_ALERTER = registerBlock("meteor_alerter",
+		key -> new MeteorAlerterBlock(alerterProperties(key)));
 
 	private static BlockBehaviour.Properties alerterProperties(ResourceKey<Block> key) {
 		return BlockBehaviour.Properties.of()
