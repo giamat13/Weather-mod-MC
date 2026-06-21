@@ -3,6 +3,7 @@ package com.weather;
 import com.weather.command.NaturalDisastersCommand;
 import com.weather.command.SeasonCommand;
 import com.weather.disaster.DisasterManager;
+import com.weather.protection.ShieldUseHandler;
 import com.weather.registry.ModRegistry;
 import com.weather.season.SeasonManager;
 
@@ -32,6 +33,9 @@ public class WeatherMod implements ModInitializer {
 		// Drive the whole system from the end of every server tick.
 		ServerTickEvents.END_SERVER_TICK.register(DISASTERS::onEndServerTick);
 		ServerTickEvents.END_SERVER_TICK.register(SEASONS::onEndServerTick);
+
+		// Right-click a block with the Disaster Shield to protect it.
+		ShieldUseHandler.register();
 
 		// Commands: trigger disasters, and view/change the season.
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {

@@ -25,6 +25,10 @@ public final class ModRegistry {
 	public static final Item USELESS_ALERTER = registerItem("useless_alerter",
 		key -> new Item(new Item.Properties().setId(key)));
 
+	/** Right-click a block with this to shield it from natural disasters. */
+	public static final Item DISASTER_SHIELD = registerItem("disaster_shield",
+		key -> new Item(new Item.Properties().setId(key)));
+
 	/** Warns about approaching tornadoes and hurricanes; placed on walls, glows while warning. */
 	public static final Block TORNADO_HURRICANE_ALERTER = registerBlock("tornado_hurricane_alerter",
 		key -> new TornadoHurricaneAlerterBlock(alerterProperties(key)));

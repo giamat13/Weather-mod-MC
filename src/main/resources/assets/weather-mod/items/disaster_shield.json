@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "weather-mod:item/disaster_shield"
+  }
+}

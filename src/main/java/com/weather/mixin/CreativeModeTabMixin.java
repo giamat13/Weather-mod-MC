@@ -29,6 +29,7 @@ public class CreativeModeTabMixin {
 		}
 		for (var item : new ItemStack[] {
 			new ItemStack(ModRegistry.USELESS_ALERTER),
+			new ItemStack(ModRegistry.DISASTER_SHIELD),
 			new ItemStack(ModRegistry.TORNADO_HURRICANE_ALERTER),
 			new ItemStack(ModRegistry.EARTHQUAKE_ALERTER)
 		}) {

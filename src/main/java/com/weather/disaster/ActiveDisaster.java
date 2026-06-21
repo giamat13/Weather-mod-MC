@@ -2,6 +2,8 @@ package com.weather.disaster;
 
 import java.util.List;
 
+import com.weather.protection.ProtectedBlocks;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket;
@@ -143,6 +145,9 @@ public class ActiveDisaster {
 			if (state.isAir() || state.getDestroySpeed(level, pos) < 0.0f || !state.getFluidState().isEmpty()) {
 				continue;
 			}
+			if (ProtectedBlocks.get(level).isProtected(pos)) {
+				continue;
+			}
 			level.destroyBlock(pos, false, null, 512);
 		}
 	}
@@ -197,6 +202,10 @@ public class ActiveDisaster {
 				BlockState state = level.getBlockState(pos);
 				if (state.isAir() || !state.getFluidState().isEmpty()) {
 					continue;
+				}
+				// Shielded blocks are left untouched.
+				if (ProtectedBlocks.get(level).isProtected(pos)) {
+					break;
 				}
 				// Unbreakable blocks (bedrock, etc.) are immovable.
 				float hardness = state.getDestroySpeed(level, pos);
