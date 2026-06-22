@@ -6,6 +6,7 @@ import com.weather.disaster.DisasterManager;
 import com.weather.protection.ShieldUseHandler;
 import com.weather.registry.ModRegistry;
 import com.weather.season.SeasonManager;
+import com.weather.weather.SandstormManager;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -25,6 +26,8 @@ public class WeatherMod implements ModInitializer {
 	public static final DisasterManager DISASTERS = new DisasterManager();
 	// Tracks the seasons and biases the weather.
 	public static final SeasonManager SEASONS = new SeasonManager();
+	// Turns desert rain into sandstorms.
+	public static final SandstormManager SANDSTORMS = new SandstormManager();
 
 	@Override
 	public void onInitialize() {
@@ -33,6 +36,7 @@ public class WeatherMod implements ModInitializer {
 		// Drive the whole system from the end of every server tick.
 		ServerTickEvents.END_SERVER_TICK.register(DISASTERS::onEndServerTick);
 		ServerTickEvents.END_SERVER_TICK.register(SEASONS::onEndServerTick);
+		ServerTickEvents.END_SERVER_TICK.register(SANDSTORMS::onEndServerTick);
 
 		// Right-click a block with the Disaster Shield to protect it.
 		ShieldUseHandler.register();
