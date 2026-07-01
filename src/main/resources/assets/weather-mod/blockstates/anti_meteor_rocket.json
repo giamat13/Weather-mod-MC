@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "weather-mod:block/anti_meteor_rocket"
+    }
+  }
+}

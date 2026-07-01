@@ -32,6 +32,8 @@ import net.minecraft.world.level.block.Blocks;
 public class DisasterManager {
 	/** Two minutes of warning before a storm-spawned disaster strikes. */
 	public static final int WARNING_LEAD_TICKS = 2 * 60 * 20;
+	/** Extinction meteors are announced far in advance so players can flee or fire a rocket. */
+	public static final int EXTINCTION_LEAD_TICKS = 6 * 60 * 20;
 	private static final double STORM_DISASTER_CHANCE = 0.15;
 	private static final double HURRICANE_SHARE = 0.4;
 
@@ -51,7 +53,6 @@ public class DisasterManager {
 	private static final double METEOR_CHANCE = 0.10;
 	private static final int METEOR_MIN_INTERVAL = 45 * 60 * 20;
 	private static final int METEOR_MAX_INTERVAL = 90 * 60 * 20;
-	private static final double METEOR_FIREBALL_SHARE = 0.3;
 	private static final int METEOR_MIN_DIST = 48;
 	private static final int METEOR_MAX_DIST = 128;
 
@@ -62,6 +63,14 @@ public class DisasterManager {
 	private final List<ScheduledDisaster> pending = new ArrayList<>();
 	private final List<ActiveDisaster> active = new ArrayList<>();
 	private final List<ActiveMeteor> meteors = new ArrayList<>();
+
+	/** Water an extinction meteor boiled away, seeping back a little each rainy tick. */
+	private final Map<ServerLevel, java.util.Deque<BlockPos>> driedWater = new HashMap<>();
+	/** How often (ticks) dried water tries to seep back. */
+	private static final int WATER_RESTORE_INTERVAL = 20;
+	/** Blocks restored per attempt when raining; multiplied during a thunderstorm. */
+	private static final int WATER_RESTORE_PER_RAIN = 2;
+	private static final int WATER_RESTORE_STORM_MULT = 4;
 
 	/** Tracks which levels are currently thundering, to detect the start of a storm. */
 	private final Map<ServerLevel, Boolean> thundering = new HashMap<>();
@@ -78,6 +87,9 @@ public class DisasterManager {
 		promoteScheduled();
 		tickActive();
 		tickMeteors();
+		if (tick % WATER_RESTORE_INTERVAL == 0) {
+			tickWaterRestore(server);
+		}
 
 		if (tick % ALERTER_SCAN_INTERVAL == 0) {
 			updateAlerters(server);
@@ -92,8 +104,17 @@ public class DisasterManager {
 
 	/** Manually queue a disaster (used by the /naturaldisasters command). */
 	public void schedule(DisasterType type, ServerLevel level, double x, double y, double z, int delayTicks) {
+		schedule(type, level, x, y, z, delayTicks, null);
+	}
+
+	/**
+	 * Queue a disaster, optionally pinning a specific meteor flavour. A {@code null}
+	 * {@code meteorType} on a meteor means "roll one by rarity" when it strikes.
+	 */
+	public void schedule(DisasterType type, ServerLevel level, double x, double y, double z,
+			int delayTicks, MeteorType meteorType) {
 		long startTick = tick + Math.max(0, delayTicks);
-		pending.add(new ScheduledDisaster(type, level, x, y, z, startTick));
+		pending.add(new ScheduledDisaster(type, level, x, y, z, startTick, meteorType));
 		// Earthquakes can crack the ground open into a geyser field (chance varies by biome).
 		if (type == DisasterType.EARTHQUAKE) {
 			float temperature = level.getBiome(BlockPos.containing(x, y, z)).value().getBaseTemperature();
@@ -159,7 +180,7 @@ public class DisasterManager {
 			}
 			it.remove();
 			if (s.type() == DisasterType.METEOR) {
-				MeteorType meteorType = random.nextDouble() < METEOR_FIREBALL_SHARE ? MeteorType.FIREBALL : MeteorType.DEBRIS;
+				MeteorType meteorType = s.meteorType() != null ? s.meteorType() : rollMeteorType();
 				meteors.add(new ActiveMeteor(s.level(), meteorType, s.x(), s.y(), s.z()));
 			} else if (s.type() == DisasterType.VOLCANO) {
 				GeyserField.create(s.level(), s.x(), s.z());
@@ -219,13 +240,113 @@ public class DisasterManager {
 		double z = target.getZ() + Math.sin(angle) * dist;
 		int y = level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.WORLD_SURFACE,
 			net.minecraft.util.Mth.floor(x), net.minecraft.util.Mth.floor(z));
-		schedule(DisasterType.METEOR, level, x, y, z, WARNING_LEAD_TICKS);
-		WeatherMod.LOGGER.info("A meteor will strike {} in 2 minutes at [{}, {}]",
-			level.dimension().identifier(), (int) x, (int) z);
+		MeteorType meteorType = rollMeteorType();
+		int lead = meteorType == MeteorType.EXTINCTION ? EXTINCTION_LEAD_TICKS : WARNING_LEAD_TICKS;
+		schedule(DisasterType.METEOR, level, x, y, z, lead, meteorType);
+		WeatherMod.LOGGER.info("A {} meteor will strike {} at [{}, {}]",
+			meteorType, level.dimension().identifier(), (int) x, (int) z);
 	}
 
 	private int randomMeteorInterval() {
 		return METEOR_MIN_INTERVAL + random.nextInt(METEOR_MAX_INTERVAL - METEOR_MIN_INTERVAL);
+	}
+
+	/** Pick a meteor flavour weighted by {@link MeteorType#rarityWeight} (extinction is very rare). */
+	private MeteorType rollMeteorType() {
+		double total = 0.0;
+		for (MeteorType t : MeteorType.values()) {
+			total += t.rarityWeight;
+		}
+		double roll = random.nextDouble() * total;
+		for (MeteorType t : MeteorType.values()) {
+			if (t.rarityWeight <= 0.0) {
+				continue;
+			}
+			roll -= t.rarityWeight;
+			if (roll < 0.0) {
+				return t;
+			}
+		}
+		return MeteorType.CRATER;
+	}
+
+	// --- extinction after-effects: water seeping back, rocket cancels ---------
+
+	/** Record water an extinction meteor boiled away so it can seep back with the rain. */
+	public void reportDriedWater(ServerLevel level, List<BlockPos> positions) {
+		java.util.Deque<BlockPos> queue = driedWater.computeIfAbsent(level, l -> new java.util.ArrayDeque<>());
+		queue.addAll(positions);
+	}
+
+	/** Trickle boiled-away water back while it rains — faster during a thunderstorm. */
+	private void tickWaterRestore(MinecraftServer server) {
+		for (var entry : driedWater.entrySet()) {
+			ServerLevel level = entry.getKey();
+			java.util.Deque<BlockPos> queue = entry.getValue();
+			if (queue.isEmpty() || !level.isRaining()) {
+				continue;
+			}
+			int budget = WATER_RESTORE_PER_RAIN * (level.isThundering() ? WATER_RESTORE_STORM_MULT : 1);
+			for (int i = 0; i < budget && !queue.isEmpty(); i++) {
+				BlockPos pos = queue.poll();
+				// Only refill if nobody has since built there.
+				if (level.getBlockState(pos).isAir()) {
+					level.setBlockAndUpdate(pos, Blocks.WATER.defaultBlockState());
+				}
+			}
+		}
+	}
+
+	/**
+	 * Cancel the nearest pending or falling meteor to {@code centre} in this level, if any.
+	 * Used by the anti-meteor rocket. Returns {@code true} if one was cancelled.
+	 */
+	public boolean cancelNearestMeteor(ServerLevel level, BlockPos centre) {
+		double cx = centre.getX() + 0.5;
+		double cz = centre.getZ() + 0.5;
+
+		ScheduledDisaster bestPending = null;
+		double bestDist = Double.MAX_VALUE;
+		for (ScheduledDisaster s : pending) {
+			if (s.level() != level || s.type() != DisasterType.METEOR) {
+				continue;
+			}
+			double d = dist2(cx, cz, s.x(), s.z());
+			if (d < bestDist) {
+				bestDist = d;
+				bestPending = s;
+			}
+		}
+
+		ActiveMeteor bestActive = null;
+		double bestActiveDist = Double.MAX_VALUE;
+		for (ActiveMeteor m : meteors) {
+			if (m.level() != level) {
+				continue;
+			}
+			double d = dist2(cx, cz, m.x(), m.z());
+			if (d < bestActiveDist) {
+				bestActiveDist = d;
+				bestActive = m;
+			}
+		}
+
+		// Prefer whichever is closer; a still-scheduled meteor is cleaner to remove.
+		if (bestPending != null && bestDist <= bestActiveDist) {
+			pending.remove(bestPending);
+			return true;
+		}
+		if (bestActive != null) {
+			meteors.remove(bestActive);
+			return true;
+		}
+		return false;
+	}
+
+	private static double dist2(double ax, double az, double bx, double bz) {
+		double dx = ax - bx;
+		double dz = az - bz;
+		return dx * dx + dz * dz;
 	}
 
 	// --- alerter warning lights ----------------------------------------------

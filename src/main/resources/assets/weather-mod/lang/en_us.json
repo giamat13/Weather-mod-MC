@@ -9,6 +9,8 @@
   "item.weather-mod.meteor_alerter": "Meteor Alerter",
   "block.weather-mod.volcano_alerter": "Volcanic Eruption Alerter",
   "item.weather-mod.volcano_alerter": "Volcanic Eruption Alerter",
+  "block.weather-mod.anti_meteor_rocket": "Anti-Meteor Rocket",
+  "item.weather-mod.anti_meteor_rocket": "Anti-Meteor Rocket",
   "item.weather-mod.useless_alerter": "Useless Alerter",
   "item.weather-mod.disaster_shield": "Disaster Shield"
 }

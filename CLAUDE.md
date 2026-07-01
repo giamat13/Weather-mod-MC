@@ -59,6 +59,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Registers custom creative tab `natural_disasters`
 - Uses modern Fabric item/block registration with `ResourceKey` + `Registry.register()`
 
+### Meteors (`disaster/MeteorType.java`, `disaster/ActiveMeteor.java`)
+
+Meteors are a distinct code path from the vortex disasters. `MeteorType` defines flavours, each with `commandId` (0 = random-only), impact tuning, and a `rarityWeight` used by `DisasterManager.rollMeteorType()`:
+- `LIGHT` (command id 1): no explosion — rains loose **items** (`ItemEntity`) plus a fire trail. Most common.
+- `CRATER` (id 2): strong fireball that carves a bowl-shaped crater (`carveCrater`).
+- `EXTINCTION` (id 3): **very rare**. Boils all water within 100 blocks (recorded via `DisasterManager.reportDriedWater`, seeps back in `tickWaterRestore` — slow in rain, `WATER_RESTORE_STORM_MULT`× faster in a thunderstorm), scorches random blocks to lava, and kills all entities in range (`entity.kill(ServerLevel)`). Scheduled with `EXTINCTION_LEAD_TICKS` (6 min) so alerters warn far in advance.
+- `DEBRIS`/`FIREBALL`: original two, random-only (`commandId = 0`).
+
+Command: `/naturaldisasters meteor <delaySeconds> [1|2|3]`. Meteor type threads through `ScheduledDisaster.meteorType` (nullable → rolled at strike time). `DisasterManager.schedule(...)` has an overload taking `MeteorType`.
+
+**Anti-Meteor Rocket** (`block/AntiMeteorRocketBlock.java`): a full-cube block (`simpleCodec`, no extra state). On a redstone signal (`neighborChanged` → `hasNeighborSignal`) it fires: small blast, flings nearby blocks skyward, consumes itself, and calls `DisasterManager.cancelNearestMeteor(level, pos)` to delete the nearest pending/active meteor of any type. Recipe: iron top-centre, iron+redstone+iron middle row, TNT in the two bottom corners.
+
 ### Mixins
 
 **Server-side**:

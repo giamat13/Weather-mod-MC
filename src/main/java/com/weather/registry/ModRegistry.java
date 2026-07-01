@@ -4,6 +4,7 @@ import java.util.function.Function;
 
 import com.weather.WeatherMod;
 import com.weather.block.AbstractAlerterBlock;
+import com.weather.block.AntiMeteorRocketBlock;
 import com.weather.block.EarthquakeAlerterBlock;
 import com.weather.block.FireAlerterBlock;
 import com.weather.block.MeteorAlerterBlock;
@@ -51,6 +52,13 @@ public final class ModRegistry {
 	/** Warns about volcanic eruptions (geyser fields). */
 	public static final Block VOLCANO_ALERTER = registerBlock("volcano_alerter",
 		key -> new VolcanoAlerterBlock(alerterProperties(key)));
+
+	/** Redstone-armed rocket that cancels the nearest incoming meteor when fired. */
+	public static final Block ANTI_METEOR_ROCKET = registerBlock("anti_meteor_rocket",
+		key -> new AntiMeteorRocketBlock(BlockBehaviour.Properties.of()
+			.setId(key)
+			.strength(2.0f, 6.0f)
+			.sound(SoundType.METAL)));
 
 	private static BlockBehaviour.Properties alerterProperties(ResourceKey<Block> key) {
 		return BlockBehaviour.Properties.of()

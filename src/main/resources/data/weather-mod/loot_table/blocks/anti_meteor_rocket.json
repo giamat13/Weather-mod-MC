@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "rolls": 1.0,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "weather-mod:anti_meteor_rocket"
+        }
+      ]
+    }
+  ],
+  "random_sequence": "weather-mod:blocks/anti_meteor_rocket"
+}

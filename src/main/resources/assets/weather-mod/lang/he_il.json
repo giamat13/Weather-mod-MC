@@ -9,6 +9,8 @@
   "item.weather-mod.meteor_alerter": "מתריע מטאורים",
   "block.weather-mod.volcano_alerter": "מתריע התפרצויות געשיות",
   "item.weather-mod.volcano_alerter": "מתריע התפרצויות געשיות",
+  "block.weather-mod.anti_meteor_rocket": "טיל אנטי-מטאור",
+  "item.weather-mod.anti_meteor_rocket": "טיל אנטי-מטאור",
   "item.weather-mod.useless_alerter": "מתריע שלא עושה כלום",
   "item.weather-mod.disaster_shield": "מגן מאסונות טבע"
 }

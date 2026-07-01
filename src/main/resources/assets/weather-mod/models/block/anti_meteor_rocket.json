@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column",
+  "textures": {
+    "end": "weather-mod:block/anti_meteor_rocket_top",
+    "side": "weather-mod:block/anti_meteor_rocket_side"
+  }
+}

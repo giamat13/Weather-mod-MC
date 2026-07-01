@@ -8,6 +8,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.weather.WeatherMod;
 import com.weather.disaster.DisasterManager;
 import com.weather.disaster.DisasterType;
+import com.weather.disaster.MeteorType;
 
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -33,25 +34,49 @@ public final class NaturalDisastersCommand {
 			if (!type.spawnable) {
 				continue; // e.g. wildfires are detected, not spawned
 			}
-			root.then(Commands.literal(type.name().toLowerCase())
-				.executes(ctx -> trigger(ctx, type, 0))
-				.then(Commands.argument("delaySeconds", IntegerArgumentType.integer(0, 600))
-					.executes(ctx -> trigger(ctx, type, IntegerArgumentType.getInteger(ctx, "delaySeconds")))));
+			LiteralArgumentBuilder<CommandSourceStack> branch = Commands.literal(type.name().toLowerCase())
+				.executes(ctx -> trigger(ctx, type, 0, null));
+
+			if (type == DisasterType.METEOR) {
+				// /naturaldisasters meteor <delaySeconds> [type 1=light 2=crater 3=extinction]
+				branch.then(Commands.argument("delaySeconds", IntegerArgumentType.integer(0, 600))
+					.executes(ctx -> trigger(ctx, type, IntegerArgumentType.getInteger(ctx, "delaySeconds"), null))
+					.then(Commands.argument("type", IntegerArgumentType.integer(1, 3))
+						.executes(ctx -> trigger(ctx, type,
+							IntegerArgumentType.getInteger(ctx, "delaySeconds"),
+							MeteorType.byCommandId(IntegerArgumentType.getInteger(ctx, "type"))))));
+			} else {
+				branch.then(Commands.argument("delaySeconds", IntegerArgumentType.integer(0, 600))
+					.executes(ctx -> trigger(ctx, type, IntegerArgumentType.getInteger(ctx, "delaySeconds"), null)));
+			}
+
+			root.then(branch);
 		}
 
 		dispatcher.register(root);
 	}
 
-	private static int trigger(CommandContext<CommandSourceStack> ctx, DisasterType type, int delaySeconds) {
+	private static int trigger(CommandContext<CommandSourceStack> ctx, DisasterType type, int delaySeconds,
+			MeteorType meteorType) {
 		CommandSourceStack source = ctx.getSource();
 		ServerLevel level = source.getLevel();
 		Vec3 pos = source.getPosition();
 
 		DisasterManager manager = WeatherMod.DISASTERS;
-		manager.schedule(type, level, pos.x, pos.y, pos.z, delaySeconds * 20);
+		manager.schedule(type, level, pos.x, pos.y, pos.z, delaySeconds * 20, meteorType);
 
 		String when = delaySeconds == 0 ? "עכשיו" : "בעוד " + delaySeconds + " שניות";
-		source.sendSuccess(() -> Component.literal("§e" + type.hebrewName + " זומן " + when + "!"), true);
+		String label = meteorType != null ? type.hebrewName + " (" + meteorHebrew(meteorType) + ")" : type.hebrewName;
+		source.sendSuccess(() -> Component.literal("§e" + label + " זומן " + when + "!"), true);
 		return 1;
+	}
+
+	private static String meteorHebrew(MeteorType type) {
+		return switch (type) {
+			case LIGHT -> "חלש";
+			case CRATER -> "מכתש";
+			case EXTINCTION -> "מכחיד";
+			default -> type.name().toLowerCase();
+		};
 	}
 }
